@@ -10,8 +10,8 @@ import IDEncoder from 'src/lib/IDEncoder'
 export class BalanceService {
     private readonly logger = new Logger(BalanceService.name)
 
-    private async _calcFromDB(cr: EntityManager) {
-        const result = await cr.query<TQueryResult<TBalance>>(
+    private async _calcFromDB(qr: EntityManager) {
+        const result = await qr.query<TQueryResult<TBalance>>(
             `
                 SELECT
                     SUM(CASE WHEN action = $1 THEN amount ELSE 0 END) -
@@ -33,8 +33,8 @@ export class BalanceService {
             }
     }
 
-    async calc(userId: string, cr: EntityManager) {
-        const fromDb = await this._calcFromDB(cr)
+    async calc(userId: string, qr: EntityManager) {
+        const fromDb = await this._calcFromDB(qr)
         this.logger.debug(`Calc from DB #userId: ${userId}, #amount: ${fromDb}`)
         return fromDb
     }
@@ -46,11 +46,11 @@ export class BalanceService {
             amount,
 
         }: CreateTransactionDto,
-        cr: EntityManager,
+        qr: EntityManager,
     ) {
         const id = IDEncoder.decode(userId)
         const operator = await this._getOperator(action)
-        const result = await cr.query<TQueryResult<TBalance>[]>(
+        const result = await qr.query<TQueryResult<TBalance>[]>(
             `
             UPDATE users
             SET balance = balance ${operator} $1
